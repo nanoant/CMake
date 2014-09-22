@@ -27,6 +27,10 @@
 #include <cmsys/Encoding.hxx>
 #include <locale.h>
 
+#ifdef CMAKE_USE_STDOUT_FILTER
+#include "cmStdoutFilter.h"
+#endif
+
 #ifdef CMAKE_BUILD_WITH_CMAKE
 //----------------------------------------------------------------------------
 static const char * cmDocumentationName[][2] =
@@ -329,6 +333,11 @@ int do_cmake(int ac, char const* const* av)
     }
   cmake cm;
   cmSystemTools::SetMessageCallback(cmakemainMessageCallback, (void *)&cm);
+
+#ifdef CMAKE_USE_STDOUT_FILTER
+  cmStdoutFilter stdoutFilter("-- ");
+#endif
+
   cm.SetProgressCallback(cmakemainProgressCallback, (void *)&cm);
   cm.SetWorkingMode(workingMode);
 

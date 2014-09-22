@@ -39,6 +39,21 @@ else()
   set(CMAKE_USE_ELF_PARSER)
 endif()
 
+# Check if we have required headers for stdout filter.
+CHECK_INCLUDE_FILE("fcntl.h" HAVE_FCNTL_H)
+CHECK_INCLUDE_FILE("pthread.h" HAVE_PTHREAD_H)
+CHECK_INCLUDE_FILE("sys/select.h" HAVE_SYS_SELECT_H)
+CHECK_INCLUDE_FILE("unistd.h" HAVE_UNISTD_H)
+if(HAVE_FCNTL_H AND HAVE_PTHREAD_H AND HAVE_SYS_SELECT_H AND HAVE_UNISTD_H)
+  set(CMAKE_USE_STDOUT_FILTER 1)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-pthread)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
+  endif()
+else()
+  set(CMAKE_USE_STDOUT_FILTER)
+endif()
+
 set(EXECUTABLE_OUTPUT_PATH ${CMake_BIN_DIR})
 
 # ensure Unicode friendly APIs are used on Windows
@@ -140,6 +155,14 @@ if(CMAKE_USE_ELF_PARSER)
   set(ELF_SRCS cmELF.h cmELF.cxx)
 endif()
 
+# Check if we can build the stdout filter.
+if(CMAKE_USE_STDOUT_FILTER)
+  set(STDOUT_FILTER_SRCS
+    cmThread.h cmThread.cxx
+    cmStdoutFilter.h cmStdoutFilter.cxx
+    )
+endif()
+
 #
 # Sources for CMakeLib
 #
@@ -194,6 +217,7 @@ set(SRCS
   cmDynamicLoader.cxx
   cmDynamicLoader.h
   ${ELF_SRCS}
+  ${STDOUT_FILTER_SRCS}
   cmExprLexer.cxx
   cmExprParser.cxx
   cmExprParserHelper.cxx
